@@ -1,9 +1,13 @@
-use crate::models::test::{CreateTestWithParameters, TestType};
+use crate::models::{
+    test::{CreateTestWithParameters, TestType},
+    user::Claims,
+};
 use actix_web::{HttpResponse, Responder, web};
 use sqlx::PgPool;
 
 pub async fn create_test_catalog(
     pool: web::Data<PgPool>,
+    _user: Claims,
     payload: web::Json<CreateTestWithParameters>,
 ) -> impl Responder {
     // Iniciamos una transacción
@@ -55,7 +59,7 @@ pub async fn create_test_catalog(
     HttpResponse::Created().json(format!("Examen '{}' creado exitosamente", payload.name))
 }
 
-pub async fn list_tests(pool: web::Data<PgPool>) -> impl Responder {
+pub async fn list_tests(pool: web::Data<PgPool>, _user: Claims) -> impl Responder {
     let tests = sqlx::query_as!(
         TestType,
         r#"

@@ -1,12 +1,15 @@
-use crate::models::order::{CreateOrder, OrderSummary};
+use crate::models::{order::{CreateOrder, OrderSummary}, user::Claims};
 use actix_web::{HttpResponse, Responder, web};
 use sqlx::PgPool;
 
 // Crear una nueva orden
 pub async fn create_order(
     pool: web::Data<PgPool>,
+    user: Claims,
     payload: web::Json<CreateOrder>,
 ) -> impl Responder {
+    let creator_id: i32 = user.sub.parse().unwrap_or(0);
+    
     let mut tx = match pool.begin().await {
         Ok(t) => t,
         Err(_) => return HttpResponse::InternalServerError().body("Error de transacción"),
@@ -33,7 +36,7 @@ pub async fn create_order(
        VALUES ($1, $2, $3, 'PAID') RETURNING id"#,
         payload.patient_id,
         total as _, // El "as _" le dice a la macro que use el tipo de la variable 'total'
-        payload.created_by
+        creator_id
     )
     .fetch_one(&mut *tx)
     .await
@@ -68,7 +71,7 @@ pub async fn create_order(
 }
 
 // Obtener todas las órdenes
-pub async fn get_orders(pool: web::Data<PgPool>) -> impl Responder {
+pub async fn get_orders(pool: web::Data<PgPool>, _user: Claims) -> impl Responder {
     let result = sqlx::query_as!(
         OrderSummary,
         r#"

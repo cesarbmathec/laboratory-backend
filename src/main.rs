@@ -32,7 +32,7 @@ async fn main() -> std::io::Result<()> {
     // Iniciar el servidor
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000") // Cambia esto por la URL de tu frontend
+            .allowed_origin("http://localhost:3000") // URL del frontend
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
             .allowed_header(header::CONTENT_TYPE)
