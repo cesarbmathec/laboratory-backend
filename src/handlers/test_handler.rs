@@ -5,6 +5,22 @@ use crate::models::{
 use actix_web::{HttpResponse, Responder, web};
 use sqlx::PgPool;
 
+/// Crear un nuevo tipo de examen con sus parámetros
+/// 
+/// Requiere autenticación JWT.
+#[utoipa::path(
+    post,
+    path = "/api/tests",
+    tag = "Tests",
+    security(
+        ("BearerAuth" = [])
+    ),
+    responses(
+        (status = 201, description = "Examen creado exitosamente"),
+        (status = 400, description = "Error al crear examen"),
+        (status = 401, description = "No autorizado")
+    )
+)]
 pub async fn create_test_catalog(
     pool: web::Data<PgPool>,
     _user: Claims,
@@ -59,6 +75,21 @@ pub async fn create_test_catalog(
     HttpResponse::Created().json(format!("Examen '{}' creado exitosamente", payload.name))
 }
 
+/// Listar todos los tipos de exámenes disponibles
+/// 
+/// Requiere autenticación JWT.
+#[utoipa::path(
+    get,
+    path = "/api/tests",
+    tag = "Tests",
+    security(
+        ("BearerAuth" = [])
+    ),
+    responses(
+        (status = 200, description = "Lista de exámenes"),
+        (status = 401, description = "No autorizado")
+    )
+)]
 pub async fn list_tests(pool: web::Data<PgPool>, _user: Claims) -> impl Responder {
     let tests = sqlx::query_as!(
         TestType,

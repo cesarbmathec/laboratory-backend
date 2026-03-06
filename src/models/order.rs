@@ -16,3 +16,25 @@ pub struct OrderSummary {
     pub total_amount: Decimal,
     pub payment_status: String,
 }
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct OrderDetail {
+    pub id: i32,
+    pub patient_name: String,
+    pub patient_identifier: String,
+    pub total_amount: rust_decimal::Decimal,
+    pub payment_status: String,
+    pub created_at: Option<chrono::NaiveDateTime>,
+}
+
+#[derive(Debug, Serialize, FromRow)]
+pub struct OrderTest {
+    pub test_name: String,
+    pub test_description: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct OrderFullResponse {
+    pub order: OrderDetail,
+    pub tests: Vec<OrderTest>,
+}

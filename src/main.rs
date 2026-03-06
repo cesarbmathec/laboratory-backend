@@ -8,6 +8,11 @@ use actix_cors::Cors;
 mod handlers;
 mod models;
 mod routes;
+mod openapi;
+
+use openapi::ApiDoc;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -27,12 +32,22 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("No se pudo conectar a la base de datos");
 
+    // Correr migraciones al iniciar
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("No se pudieron correr las migraciones de la base de datos.");
+
     println!("🚀 Servidor corriendo en http://127.0.0.1:8080");
+    println!("📚 Swagger UI disponible en http://127.0.0.1:8080/swagger-ui");
+
+    // Generar el JSON de OpenAPI
+    let openapi = ApiDoc::openapi();
 
     // Iniciar el servidor
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000") // URL del frontend
+            .allow_any_origin() // En producción, especificar los orígenes permitidos
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
             .allowed_header(header::CONTENT_TYPE)
@@ -44,6 +59,10 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %r %s %b %{Referer}i %T"))
             .app_data(web::Data::new(pool.clone())) // Compartir la conexión con los handlers
             .route("/", web::get().to(health_check))
+            .service(
+                SwaggerUi::new("/swagger-ui/{:.*}")
+                    .url("/api-docs/openapi.json", openapi.clone())
+            )
             .configure(routes::main_config)
     })
     .bind(("127.0.0.1", 8080))?

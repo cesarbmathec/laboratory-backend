@@ -4,8 +4,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use actix_web::{HttpRequest, dev::Payload, error::ErrorUnauthorized, FromRequest};
 use futures_util::future::{ready, Ready};
+use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -13,20 +14,20 @@ pub struct User {
     pub role: Option<String>, // 'admin' o 'operator' según tu SQL
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AuthRequest {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AuthResponse {
     pub token: String,
     pub username: String,
     pub role: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Claims {
     pub sub: String, // user_id
     pub exp: usize,  // expiración

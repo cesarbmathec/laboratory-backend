@@ -4,6 +4,7 @@ pub mod patient_routes;
 pub mod test_routes;
 pub mod order_routes;
 pub mod auth_routes;
+pub mod result_routes;
 
 pub fn main_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -12,5 +13,6 @@ pub fn main_config(cfg: &mut web::ServiceConfig) {
             .configure(patient_routes::config)
             .configure(test_routes::config)
             .configure(order_routes::config)
+            .configure(result_routes::config)
     );
 }

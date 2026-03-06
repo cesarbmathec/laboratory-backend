@@ -4,7 +4,36 @@ use bcrypt::{DEFAULT_COST, hash, verify};
 use jsonwebtoken::{EncodingKey, Header, encode};
 use sqlx::PgPool;
 use std::env;
+use utoipa::ToSchema;
 
+/// Credenciales para iniciar sesión
+#[derive(Debug, ToSchema)]
+pub struct LoginRequest {
+    pub username: String,
+    pub password: String,
+}
+
+/// Respuesta de autenticación exitosa
+#[derive(Debug, ToSchema)]
+pub struct LoginResponse {
+    pub token: String,
+    pub username: String,
+    pub role: String,
+}
+
+/// Iniciar sesión en el sistema
+/// 
+/// Proporciona credenciales válidas para obtener un token JWT de acceso.
+#[utoipa::path(
+    post,
+    path = "/api/auth/login",
+    tag = "Auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Login exitoso", body = LoginResponse),
+        (status = 401, description = "Credenciales inválidas")
+    )
+)]
 pub async fn login(pool: web::Data<PgPool>, payload: web::Json<AuthRequest>) -> impl Responder {
     // Buscar usuario en la DB
     let user = sqlx::query_as!(
@@ -49,6 +78,19 @@ pub async fn login(pool: web::Data<PgPool>, payload: web::Json<AuthRequest>) -> 
     HttpResponse::Unauthorized().body("Credenciales inválidas")
 }
 
+/// Registar un nuevo usuario en el sistema
+/// 
+/// Crea un nuevo usuario con rol de operador por defecto.
+#[utoipa::path(
+    post,
+    path = "/api/auth/register",
+    tag = "Auth",
+    request_body = LoginRequest,
+    responses(
+        (status = 201, description = "Usuario creado exitosamente"),
+        (status = 400, description = "Error al crear usuario")
+    )
+)]
 pub async fn register(pool: web::Data<PgPool>, payload: web::Json<AuthRequest>) -> impl Responder {
     let hashed_password = match hash(&payload.password, DEFAULT_COST) {
         Ok(h) => h,
